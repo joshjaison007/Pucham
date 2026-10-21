@@ -1,4 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
+const fs = require('fs');
 
 const client = new Client({
   intents: [
@@ -16,7 +17,6 @@ client.once('ready', async () => {
       process.exit(1);
     }
 
-    // Force fetch all members from Discord API
     await guild.members.fetch({ force: true });
 
     const memberData = guild.members.cache.map(member => ({
@@ -27,20 +27,10 @@ client.once('ready', async () => {
       pfp: member.user.displayAvatarURL({ extension: 'png', size: 256 })
     }));
 
-    console.log(`Fetched ${memberData.length} members:`, memberData);
+    // Save directly to members.json file
+    fs.writeFileSync('members.json', JSON.stringify(memberData, null, 2));
+    console.log(`Saved ${memberData.length} members to members.json!`);
 
-    // Send data to npoint.io
-    const response = await fetch(`https://api.npoint.io/${process.env.NPOINT_ID}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(memberData)
-    });
-
-    if (response.ok) {
-      console.log(`Successfully updated ${memberData.length} members to npoint!`);
-    } else {
-      console.error('Failed to update npoint JSON.');
-    }
   } catch (err) {
     console.error('Error fetching members:', err);
   } finally {
