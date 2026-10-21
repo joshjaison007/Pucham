@@ -16,17 +16,20 @@ client.once('ready', async () => {
       process.exit(1);
     }
 
-    await guild.members.fetch();
+    // Force fetch all members from Discord API
+    await guild.members.fetch({ force: true });
 
     const memberData = guild.members.cache.map(member => ({
       username: member.user.username,
-      displayName: member.displayName,
-      id: member.id,
+      displayName: member.displayName || member.user.username,
+      id: member.user.id,
       status: member.presence?.status || 'offline',
       pfp: member.user.displayAvatarURL({ extension: 'png', size: 256 })
     }));
 
-    // Upload member list to npoint.io
+    console.log(`Fetched ${memberData.length} members:`, memberData);
+
+    // Send data to npoint.io
     const response = await fetch(`https://api.npoint.io/${process.env.NPOINT_ID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
