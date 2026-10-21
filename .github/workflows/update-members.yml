@@ -1,0 +1,28 @@
+name: Update Discord Members
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Runs automatically every 15 minutes
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run script
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          GUILD_ID: ${{ secrets.GUILD_ID }}
+          NPOINT_ID: ${{ secrets.NPOINT_ID }}
+        run: node fetch-members.js
