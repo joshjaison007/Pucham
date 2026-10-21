@@ -5,14 +5,20 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
-jobs:
-  update-data:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # Grants GitHub permission to commit members.json
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -29,10 +35,10 @@ jobs:
           GUILD_ID: ${{ secrets.GUILD_ID }}
         run: node fetch-members.js
 
-      - name: Commit and push updated members.json
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add members.json
-          git commit -m "auto: update members.json" || exit 0
-          git push
+      - name: Setup Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
